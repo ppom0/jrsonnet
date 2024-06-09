@@ -103,3 +103,29 @@ Jrsonnet provides a standard `libjsonnet.so` shared library and should work as d
 WASM bingings are also available, Java bindings (Both JNI and WASM compiled to `.class`) are in progress
 
 See link:./bindings/[bindings] for more information.
+
+== Quickstart
+
+.minimal-example.rs
+[source,rust]
+----
+use std::path::PathBuf;
+
+use jrsonnet_evaluator::{error::LocError, EvaluationState, FileImportResolver};
+
+pub fn from_path(path: &PathBuf) -> Result<String, String> {
+    let state = EvaluationState::default();
+    state.with_stdlib();
+    state.set_import_resolver(Box::new(FileImportResolver::default()));
+
+    match evaluate(path, &state) {
+        Ok(val) => Ok(val),
+        Err(err) => Err(state.stringify_err(&err)),
+    }
+}
+fn evaluate(path: &PathBuf, state: &EvaluationState) -> Result<String, LocError> {
+    let val = state.evaluate_file_raw(path)?;
+    let result = state.manifest(val)?;
+    Ok(result.to_string())
+}
+----
